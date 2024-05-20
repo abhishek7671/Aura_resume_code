@@ -148,3 +148,5 @@ Analytics/resources/staging
 /templates
 /app_local.py
 .idea
+/process.log
+/users.log

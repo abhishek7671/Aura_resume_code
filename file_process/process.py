@@ -3,7 +3,7 @@ from flask import request, jsonify, Blueprint
 import utils.config as cf
 import base64
 from file_process.Resume_Scoring import get_skill_process,bg_process
-from utils import jwt_validation
+# from utils import jwt_validation
  
 
 
@@ -20,6 +20,10 @@ logger.addHandler(file_handler)
 
 upload_folder_jd = cf.Resumes_File_Path + "\ResumeProcess\saved_jd_files"
 upload_folder_resume = cf.Resumes_File_Path + "\ResumeProcess\saved_resume_files"
+
+
+
+
 
 @processes.route("/view_data", methods=['POST'])
 # @jwt_validation.is_jwt_valid()
@@ -48,6 +52,19 @@ def upload_and_view_data():
             "Error": str(e),
             "Error_code": 1
         })
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @processes.route("/view_result", methods=['POST'])
 # @jwt_validation.is_jwt_valid()

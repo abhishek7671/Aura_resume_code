@@ -8,6 +8,7 @@ from hashlib import shake_128
 import os, glob
 import pathlib
 import asyncio
+from docx2pdf import convert 
 
 from pyparsing import condition_as_parse_action
 
@@ -176,6 +177,31 @@ def extract_text_from_word(filepath):
         for i in tb_str: print(i)
         return "failed while extracting data from word"
 
+# def extract_text_from_pdf(filepath):
+#     '''
+#         Author: XYZ
+
+#         Description: This function is used to extract text from pdf file i.e. resume files
+#                     Opens and reads in a PDF file from path
+
+#         params: filepath(str): path of folder where pdf file is located
+
+#         return: list - extracted text and list of extracted data i.e. each word or each digit
+#     '''
+#     '''Opens and reads in a PDF file from path'''
+#     try:
+#         fileReader = PyPDF2.PdfFileReader(open(filepath,'rb'))
+#         page_count = fileReader.getNumPages()
+#         pdf_text = [fileReader.getPage(i).extractText() for i in range(page_count)]
+#         pdf_text = str(pdf_text).replace("\\n", "").replace('\xa0','')
+#         pdf_data_list = get_pdf_data(filepath)
+#         return [pdf_text,pdf_data_list]
+#     except Exception as e:
+#         exc_type, exc_value, exc_traceback = sys.exc_info()
+#         tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+#         for i in tb_str: print(i)
+#         return "failed while extracting data from pdf"
+
 def extract_text_from_pdf(filepath):
     '''
         Author: XYZ
@@ -192,14 +218,23 @@ def extract_text_from_pdf(filepath):
         fileReader = PyPDF2.PdfFileReader(open(filepath,'rb'))
         page_count = fileReader.getNumPages()
         pdf_text = [fileReader.getPage(i).extractText() for i in range(page_count)]
-        pdf_text = str(pdf_text).replace("\\n", "").replace('\xa0','')
+        pdf_text = "".join(pdf_text)  # Join all pages into a single string
+        # Use regular expression to find email
+        email_regex = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+        email_match = email_regex.search(pdf_text)
+        if email_match:
+            Email = email_match.group(0)
+        else:
+            Email = "NA"
         pdf_data_list = get_pdf_data(filepath)
-        return [pdf_text,pdf_data_list]
+        return [pdf_text, pdf_data_list, Email]
     except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         tb_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
         for i in tb_str: print(i)
         return "failed while extracting data from pdf"
+
+
 
 def text_read(file):
     '''
@@ -1231,6 +1266,7 @@ def main(resume_folder, job_folder, jd_input, experience, mandatory_skills, seco
             
     return df_Resume_scores
 
+
 def change_filename(filename, job_id):
     splitted_file_name = filename.split('.')
     new_filename = ".".join(splitted_file_name[:-1])+ "_" + str(job_id)+ "." +splitted_file_name[-1]
@@ -1251,6 +1287,12 @@ def extract_candidate_name(candidate_name):
     name_parts = re.findall('[A-Z][a-z\s]*', name)
     name = ' '.join(name_parts)
     return name.split('[')[0] if '[' in name else name
+
+
+
+
+
+
 
 def get_skill_process(req_data):
     start = time.time()
@@ -1286,6 +1328,7 @@ def get_skill_process(req_data):
     module_run_time = exit_time - entry_time
     overall_end_time = time.time() - start
     if not resp.empty:
+        
         resp['Total_exp_cal'] = ''
         resp['Total_Exp_With_Years_lst'] = ''
         for i in range(len(resp)):
@@ -1316,7 +1359,10 @@ def get_skill_process(req_data):
                 "Mobile": result["Mobile"],
                 "Total_exp_cal": result["Total_exp_cal"],
                 "Resume_skills": result["Resume_skills"]
+                
             }
+            
+            print(result["Mobile"]) 
             filtered_results.append(filtered_result)
         resultant = {
             'overall_run_time': overall_end_time,
@@ -1398,13 +1444,14 @@ def bg_process(req_data):
             resp['name'] = resp['Candidate']
  
             resp['exp_details'] = ""
- 
+            
             output_obj = {
                 'overall_run_time': overall_end_time,
                 'result': resp.to_dict(orient='records')
             }
  
             return output_obj
+        
  
     except Exception as e:
         return jsonify({
@@ -1412,6 +1459,11 @@ def bg_process(req_data):
             "Error": str(e),
             "Error_code": 1
         })
+        
+                 
+          
+          
+          
 
 def process_file(org_file_list, job_folder, jd_input, experience, mandatory_skills, secondary_skills):
     start_time = time.time()
@@ -1450,3 +1502,8 @@ def create_skillset_list(texts):
     #     result.append(str(i))
     result = [str(i) for i in dct.values()]
     return result
+
+
+
+
+
